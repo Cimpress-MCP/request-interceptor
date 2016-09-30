@@ -1,8 +1,6 @@
 var chai                       = require("chai"),
     expect                     = require("chai").expect,
-    mockery                    = require("mockery"),
     spies                      = require("chai-spies"),
-    util                       = require("util"),
     uuid                       = require("node-uuid"),
     RequestMiddlewareFramework = require("../index.js");
 
@@ -44,10 +42,6 @@ describe("RequestMiddlewareFramework", function() {
     context.options = {
       uri: `http://${uuid.v4()}`
     };
-  });
-
-  afterEach(function() {
-    mockery.disable();
   });
 
   describe("Executing a request with middleware", function() {
@@ -114,6 +108,28 @@ describe("RequestMiddlewareFramework", function() {
         expect(context.mockedRequest).to.have.been.called();
         expect(context.middlewareCallback2).to.have.been.called();
         expect(context.middlewareCallback).to.have.been.called();
+      });
+    });
+  });
+
+  describe("Short-circuiting a request with middleware", function() {
+    it("should execute the middleware appropriately but not make the actual request", function() {
+      var responseBody = uuid.v4();
+      context.middleware = chai.spy(function(options, callback, next) {
+        callback(null, { body: responseBody }, responseBody);
+      });
+      var rmf = new RequestMiddlewareFramework(context.mockedRequest, context.middleware);
+      context.request = rmf.getMiddlewareEnabledRequest();
+      context.request(context.options, function(err, response, body) {
+        expect(err).to.not.exist;
+        expect(response).to.exist.and.be.an("object");
+        expect(response).to.have.property("body").and.equal(responseBody);
+        expect(body).to.exist.and.be.a("string").and.equal(responseBody);
+        expect(context.mockedRequest.defaults).to.have.been.called();
+        expect(context.overriddenRequest).to.have.been.called();
+        expect(context.middleware).to.have.been.called();
+        expect(context.mockedRequest).to.not.have.been.called();
+        expect(context.middlewareCallback).to.not.exist;
       });
     });
   });
