@@ -16,9 +16,9 @@ var RequestMiddlewareFramework = function(request) {
   this.middleware = [ ];
 
   if (arguments.length > 1) {
-    for (var i = 1; i < arguments.length; i++) {
-      this.use(arguments[i]);
-    }
+    var args = _.toArray(arguments);
+    args.shift();
+    _.forEach(args, mw => this.use(mw));
   }
 };
 
