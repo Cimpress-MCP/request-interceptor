@@ -1,8 +1,8 @@
 var chai                       = require("chai"),
     expect                     = require("chai").expect,
+    RequestMiddlewareFramework = require("../index.js"),
     spies                      = require("chai-spies"),
-    uuid                       = require("node-uuid"),
-    RequestMiddlewareFramework = require("../index.js");
+    uuid                       = require("node-uuid");
 
 chai.use(spies);
 
@@ -22,7 +22,6 @@ describe("RequestMiddlewareFramework", function() {
       callback(null, response, response.body);
     });
     context.mockedRequest.defaults = chai.spy(function(requester) {
-      var orig = context.mockedRequest;
       context.overriddenRequest = chai.spy(function(options, callback) {
         requester(options, callback);
       });
